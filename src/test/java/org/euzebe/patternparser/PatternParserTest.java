@@ -3,8 +3,6 @@ package org.euzebe.patternparser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,34 +26,34 @@ public class PatternParserTest {
 
     @Test
     public void should_return_today_when_input_$TODAY() {
-        Date date = util.replaceValues(PatternParser.TODAY_PATTERN).get();
-        assertThat(toLocalDate(date)).isEqualTo(LocalDate.now());
+        LocalDate date = util.replaceValues(PatternParser.TODAY_PATTERN).get();
+        assertThat(date).isEqualTo(LocalDate.now());
     }
 
     @Test
     public void should_return_a_date_in_the_future() {
         String valueToParse = "${TODAY+12D}";
 
-        Optional<Date> replacement = util.replaceValues(valueToParse);
+        Optional<LocalDate> replacement = util.replaceValues(valueToParse);
         assertThat(replacement.isPresent()).isTrue();
 
         LocalDate expectedDate = LocalDate.now() //
                 .plusDays(12);
 
-        assertThat(toLocalDate(replacement.get())).isEqualTo(expectedDate);
+        assertThat(replacement.get()).isEqualTo(expectedDate);
     }
 
     @Test
     public void should_return_a_date_in_the_past_when_value_is_like_$TODAY_MINUS_X() {
         String valueToParse = "${TODAY-20D}";
 
-        Optional<Date> replacement = util.replaceValues(valueToParse);
+        Optional<LocalDate> replacement = util.replaceValues(valueToParse);
         assertThat(replacement.isPresent()).isTrue();
 
         LocalDate expectedDate = LocalDate.now() //
                 .minusDays(20);
 
-        assertThat(toLocalDate(replacement.get())).isEqualTo(expectedDate);
+        assertThat(replacement.get()).isEqualTo(expectedDate);
     }
 
     @Test
@@ -75,12 +73,5 @@ public class PatternParserTest {
         int parsedNegativeInt = Integer.parseInt(negativeMatcher.group(1) + negativeMatcher.group(2));
         assertThat(parsedNegativeInt).isEqualTo(-26);
 
-    }
-
-    private LocalDate toLocalDate(Date date) {
-        return date //
-                .toInstant() //
-                .atZone(ZoneId.systemDefault()) //
-                .toLocalDate();
     }
 }
