@@ -1,9 +1,11 @@
 package org.euzebe.patternparser;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
-
-import org.apache.commons.lang3.time.DateUtils;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PatternParser {
 
@@ -15,23 +17,22 @@ public class PatternParser {
 			return Optional.empty();
 		}
 
-		String toReplace = initialValue.toString();
-
 		if (TODAY_PATTERN.equals(initialValue)) {
 			return Optional.of(new Date());
 		}
-		if (toReplace.startsWith(PARTIAL_TODAY_PATTERN)) {
-			String operation = toReplace.substring(7, 8);
-			String paramDays = toReplace.substring(8, toReplace.indexOf("D}"));
-			Integer days = Integer.parseInt(paramDays);
-			if (days > 0) {
-				if (operation.equals("+")) {
-					return Optional.of(DateUtils.addDays(new Date(), days));
-				} else if (operation.equals("-")) {
-					return Optional.of(DateUtils.addDays(new Date(), -days));
-				}
-			}
-		}
-		return Optional.empty();
+
+       return parseValue(initialValue.toString());
 	}
+
+    private Optional<Date> parseValue(String initialValue) {
+        Pattern pattern = Pattern.compile("\\$\\{TODAY(-|\\+)(\\d+)D\\}");
+        Matcher matcher = pattern.matcher(initialValue);
+        if (matcher.find()) {
+            Long signedOffset = Long.parseLong(matcher.group(1) + matcher.group(2)); // group1 = sign, group2 = number
+            LocalDate resultDate = LocalDate.now().plusDays(signedOffset);
+            Date date = Date.from(resultDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            return Optional.of(date);
+        }
+        return Optional.empty();
+    }
 }
